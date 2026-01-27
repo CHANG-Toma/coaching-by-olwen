@@ -58,10 +58,10 @@ export default function Navbar() {
               Témoignages
             </Link>
             <Link 
-              href="#contact" 
+              href="/auth/signin" 
               className="px-6 py-2 gradient-primary text-white rounded-full font-semibold hover:scale-105 transition-transform"
             >
-              Commencer
+              Se connecter
             </Link>
           </div>
 
@@ -115,11 +115,11 @@ export default function Navbar() {
               Témoignages
             </Link>
             <Link 
-              href="#contact" 
+              href="/auth/signin" 
               onClick={() => setIsOpen(false)}
               className="block px-6 py-2 gradient-primary text-white rounded-full font-semibold text-center hover:shadow-lg transition-all"
             >
-              Commencer
+              Se connecter
             </Link>
           </div>
         </div>
