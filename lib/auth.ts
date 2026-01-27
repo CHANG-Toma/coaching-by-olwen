@@ -45,7 +45,7 @@ export const config = {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
+          role: (user as any).role,
         }
       },
     }),
@@ -58,10 +58,33 @@ export const config = {
   },
   callbacks: {
     async jwt({ token, user }) {
+      // Si c'est une nouvelle connexion, initialiser le token
       if (user && user.id) {
         token.id = user.id
-        token.role = (user as any).role
       }
+      
+      // Toujours récupérer le rôle depuis la DB pour garantir qu'il est à jour
+      // Cela fonctionne aussi bien pour les nouvelles connexions que pour les rafraîchissements
+      if (token.id) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+          })
+          if (dbUser && (dbUser as any).role) {
+            token.role = (dbUser as any).role
+          } else if (user && (user as any).role) {
+            // Fallback sur le rôle de l'utilisateur si la DB ne retourne pas de rôle
+            token.role = (user as any).role
+          }
+        } catch (error) {
+          // En cas d'erreur, utiliser le rôle de l'utilisateur si disponible
+          if (user && (user as any).role) {
+            token.role = (user as any).role
+          }
+          console.error("Erreur lors de la vérification du rôle:", error)
+        }
+      }
+      
       return token
     },
     async session({ session, token }) {

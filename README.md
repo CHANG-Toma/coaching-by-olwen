@@ -208,8 +208,42 @@ La charte graphique est définie dans `Docs/charte-graphique.md` :
 
 ### Accès à la base de données
 
-- **Adminer** : http://localhost:8080
-  - Système : PostgreSQL
+Vous avez plusieurs options pour gérer votre base de données :
+
+#### Option 1 : Interface dans le Dashboard Admin (Recommandé)
+1. Connectez-vous en tant qu'admin
+2. Allez dans `/dashboard/clients`
+3. Vous verrez tous les utilisateurs avec leurs rôles
+4. Utilisez le menu déroulant pour changer le rôle d'un utilisateur (CLIENT ↔ ADMIN)
+
+#### Option 2 : Prisma Studio (Interface graphique)
+```bash
+npm run db:studio
+```
+- Ouvre une interface web sur http://localhost:5555
+- Permet de visualiser et modifier toutes les tables
+- Pour définir un admin : trouvez l'utilisateur dans la table `User`, cliquez sur `role` et changez `CLIENT` en `ADMIN`
+
+#### Option 3 : Adminer (Interface web SQL)
+- **URL** : http://localhost:8080
+- **Système** : PostgreSQL
+- **Serveur** : `postgres`
+- **Utilisateur** : `coaching_user`
+- **Mot de passe** : `coaching_password`
+- **Base de données** : `coaching_by_olwen`
+- Pour définir un admin : exécutez cette requête SQL :
+  ```sql
+  UPDATE "User" SET role = 'ADMIN' WHERE email = 'votre@email.com';
+  ```
+
+#### Option 4 : Script en ligne de commande
+```bash
+npm run set-admin <email>
+```
+Exemple :
+```bash
+npm run set-admin olwen@example.com
+```
   - Serveur : postgres
   - Utilisateur : coaching_user
   - Mot de passe : coaching_password

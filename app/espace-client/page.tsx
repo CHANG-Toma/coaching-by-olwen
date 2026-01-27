@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import Navbar from "@/app/components/Navbar"
 import Footer from "@/app/components/Footer"
@@ -10,6 +10,7 @@ import Footer from "@/app/components/Footer"
 export default function EspaceClientPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const [roleChecked, setRoleChecked] = useState(false)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -17,11 +18,57 @@ export default function EspaceClientPage() {
       return
     }
     
-    if (status === "authenticated" && session?.user?.role === "ADMIN") {
-      router.push("/dashboard")
+    // Ne pas vérifier si la session est en cours de chargement
+    if (status === "loading") {
       return
     }
-  }, [status, session, router])
+    
+    // Si la session est chargée, vérifier le rôle directement dans la DB
+    if (status === "authenticated" && session?.user?.email && !roleChecked) {
+      const checkRoleAndRedirect = async () => {
+        try {
+          const roleResponse = await fetch("/api/auth/get-role-by-email", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: session.user.email }),
+            cache: "no-store",
+          })
+          
+          if (roleResponse.ok) {
+            const roleData = await roleResponse.json()
+            const role = roleData.role
+            
+            // Si l'utilisateur est ADMIN, rediriger vers le dashboard
+            if (role === "ADMIN") {
+              window.location.href = "/dashboard"
+              return
+            }
+          }
+          
+          // Marquer comme vérifié pour éviter les vérifications multiples
+          setRoleChecked(true)
+        } catch (err) {
+          console.error("Erreur lors de la vérification du rôle:", err)
+          // En cas d'erreur, vérifier la session
+          if (session?.user?.role === "ADMIN") {
+            window.location.href = "/dashboard"
+            return
+          }
+          setRoleChecked(true)
+        }
+      }
+      
+      // Vérifier le rôle dans la DB si la session n'a pas le rôle ou si le rôle n'est pas ADMIN
+      if (!session.user.role || session.user.role !== "ADMIN") {
+        checkRoleAndRedirect()
+      } else {
+        // Si la session a déjà le rôle ADMIN, rediriger immédiatement
+        window.location.href = "/dashboard"
+      }
+    }
+  }, [status, session, router, roleChecked])
 
   if (status === "loading") {
     return (
@@ -38,7 +85,19 @@ export default function EspaceClientPage() {
     return null
   }
 
-  // Si admin, rediriger (déjà géré dans useEffect mais au cas où)
+  // Si on vérifie encore le rôle (pour les admins), afficher un loader
+  if (!roleChecked && (!session.user?.role || session.user?.role !== "ADMIN")) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-violet mx-auto mb-4"></div>
+          <p className="text-secondary-dark font-body">Vérification des permissions...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Si admin (déjà vérifié), ne rien afficher (redirection en cours)
   if (session.user?.role === "ADMIN") {
     return null
   }

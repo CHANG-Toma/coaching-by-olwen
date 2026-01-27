@@ -75,16 +75,39 @@ export default function RegisterPage() {
         setError("Compte créé mais erreur de connexion. Veuillez vous connecter.")
         setLoading(false)
         router.push("/auth/signin")
-      } else {
-        // Récupérer la session pour obtenir le rôle
-        const session = await getSession()
-        if (session?.user?.role === "ADMIN") {
-          router.push("/dashboard")
-        } else {
-          router.push("/espace-client")
-        }
-        router.refresh()
+        return
       }
+
+      // Récupérer le rôle directement depuis la base de données en utilisant l'email
+      let redirectPath = "/espace-client" // Par défaut pour les clients
+      
+      try {
+        const roleResponse = await fetch("/api/auth/get-role-by-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: formData.email }),
+          cache: "no-store",
+        })
+        
+        if (roleResponse.ok) {
+          const roleData = await roleResponse.json()
+          const role = roleData.role
+          
+          if (role === "ADMIN") {
+            redirectPath = "/dashboard"
+          } else {
+            redirectPath = "/espace-client"
+          }
+        }
+      } catch (err) {
+        console.error("Erreur lors de la récupération du rôle:", err)
+      }
+      
+      // Rediriger vers le chemin déterminé
+      // Utiliser window.location.href pour forcer une navigation complète et recharger la session
+      window.location.href = redirectPath
     } catch (err) {
       setError("Une erreur est survenue lors de l'inscription")
       setLoading(false)

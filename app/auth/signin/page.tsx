@@ -27,16 +27,52 @@ export default function SignInPage() {
       if (result?.error) {
         setError("Email ou mot de passe incorrect")
         setLoading(false)
-      } else {
-        // Récupérer la session pour obtenir le rôle
-        const session = await getSession()
-        if (session?.user?.role === "ADMIN") {
-          router.push("/dashboard")
-        } else {
-          router.push("/espace-client")
-        }
-        router.refresh()
+        return
       }
+
+      // Récupérer le rôle directement depuis la base de données en utilisant l'email
+      // Cela évite les problèmes de timing avec la session
+      let redirectPath = "/espace-client" // Par défaut pour les clients
+      
+      try {
+        console.log("🔍 Récupération du rôle pour:", email)
+        const roleResponse = await fetch("/api/auth/get-role-by-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+          cache: "no-store",
+        })
+        
+        console.log("📡 Status de la réponse:", roleResponse.status, roleResponse.ok)
+        
+        if (roleResponse.ok) {
+          const roleData = await roleResponse.json()
+          console.log("📦 Données reçues:", roleData)
+          const role = roleData.role
+          console.log("🎭 Rôle extrait:", role, "Type:", typeof role)
+          
+          // Déterminer le chemin de redirection selon le rôle
+          if (role === "ADMIN") {
+            redirectPath = "/dashboard"
+            console.log("✅ Redirection vers /dashboard")
+          } else {
+            redirectPath = "/espace-client"
+            console.log("ℹ️ Rôle non ADMIN, redirection vers /espace-client")
+          }
+        } else {
+          const errorData = await roleResponse.json()
+          console.error("❌ Erreur de la réponse:", errorData)
+        }
+      } catch (err) {
+        console.error("❌ Erreur lors de la récupération du rôle:", err)
+      }
+      
+      // Rediriger vers le chemin déterminé
+      // Utiliser window.location.href pour forcer une navigation complète et recharger la session
+      console.log("🚀 Navigation vers:", redirectPath)
+      window.location.href = redirectPath
     } catch (err) {
       setError("Une erreur est survenue")
       setLoading(false)
