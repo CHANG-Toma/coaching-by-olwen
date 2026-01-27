@@ -1,32 +1,80 @@
 "use client"
 
-import { signIn, getSession } from "next-auth/react"
 import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { signIn, getSession } from "next-auth/react"
 
-export default function SignInPage() {
+export default function RegisterPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+    setError("")
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setLoading(true)
 
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      setError("Les mots de passe ne correspondent pas")
+      setLoading(false)
+      return
+    }
+
+    if (formData.password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères")
+      setLoading(false)
+      return
+    }
+
     try {
+      // Créer le compte
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || "Une erreur est survenue")
+        setLoading(false)
+        return
+      }
+
+      // Connecter automatiquement l'utilisateur après l'inscription
       const result = await signIn("credentials", {
-        email,
-        password,
+        email: formData.email,
+        password: formData.password,
         redirect: false,
       })
 
       if (result?.error) {
-        setError("Email ou mot de passe incorrect")
+        setError("Compte créé mais erreur de connexion. Veuillez vous connecter.")
         setLoading(false)
+        router.push("/auth/signin")
       } else {
         // Récupérer la session pour obtenir le rôle
         const session = await getSession()
@@ -38,7 +86,7 @@ export default function SignInPage() {
         router.refresh()
       }
     } catch (err) {
-      setError("Une erreur est survenue")
+      setError("Une erreur est survenue lors de l'inscription")
       setLoading(false)
     }
   }
@@ -61,22 +109,39 @@ export default function SignInPage() {
         {/* Card */}
         <div className="bg-white rounded-3xl p-8 shadow-2xl">
           <h1 className="mb-2 text-center text-3xl font-heading font-bold text-secondary-dark">
-            Connexion
+            Créer un Compte
           </h1>
           <p className="text-center text-secondary-dark/70 mb-6 font-body">
-            Connectez-vous à votre compte
+            Commencez votre transformation dès aujourd'hui
           </p>
           
           <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-secondary-dark mb-2 font-body">
+                Nom complet
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border-2 border-secondary-light px-4 py-3 focus:border-primary-violet focus:outline-none focus:ring-2 focus:ring-primary-violet/20 transition-all font-body"
+                placeholder="Votre nom"
+              />
+            </div>
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-secondary-dark mb-2 font-body">
                 Email
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={handleChange}
                 required
                 className="w-full rounded-lg border-2 border-secondary-light px-4 py-3 focus:border-primary-violet focus:outline-none focus:ring-2 focus:ring-primary-violet/20 transition-all font-body"
                 placeholder="votre@email.com"
@@ -89,23 +154,31 @@ export default function SignInPage() {
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
                 required
+                minLength={6}
                 className="w-full rounded-lg border-2 border-secondary-light px-4 py-3 focus:border-primary-violet focus:outline-none focus:ring-2 focus:ring-primary-violet/20 transition-all font-body"
-                placeholder="••••••••"
+                placeholder="Au moins 6 caractères"
               />
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 text-primary-violet rounded" />
-                <span className="text-secondary-dark/70 font-body">Se souvenir de moi</span>
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-secondary-dark mb-2 font-body">
+                Confirmer le mot de passe
               </label>
-              <a href="#" className="text-primary-violet hover:underline font-body">
-                Mot de passe oublié ?
-              </a>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border-2 border-secondary-light px-4 py-3 focus:border-primary-violet focus:outline-none focus:ring-2 focus:ring-primary-violet/20 transition-all font-body"
+                placeholder="Répétez votre mot de passe"
+              />
             </div>
 
             {error && (
@@ -119,7 +192,7 @@ export default function SignInPage() {
               disabled={loading}
               className="w-full rounded-full gradient-primary px-6 py-3 font-bold text-white transition-all hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Connexion..." : "Se connecter"}
+              {loading ? "Création du compte..." : "Créer mon compte"}
             </button>
           </form>
 
@@ -133,12 +206,12 @@ export default function SignInPage() {
             </div>
           </div>
 
-          {/* Register link */}
+          {/* Sign in link */}
           <div className="text-center">
             <p className="text-secondary-dark/70 font-body">
-              Pas encore de compte ?{" "}
-              <Link href="/auth/register" className="text-primary-violet font-semibold hover:underline">
-                Créer un compte
+              Déjà un compte ?{" "}
+              <Link href="/auth/signin" className="text-primary-violet font-semibold hover:underline">
+                Se connecter
               </Link>
             </p>
           </div>

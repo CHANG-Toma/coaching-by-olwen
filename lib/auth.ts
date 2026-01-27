@@ -45,6 +45,7 @@ export const config = {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
         }
       },
     }),
@@ -59,12 +60,14 @@ export const config = {
     async jwt({ token, user }) {
       if (user && user.id) {
         token.id = user.id
+        token.role = (user as any).role
       }
       return token
     },
     async session({ session, token }) {
       if (session.user && token.id) {
         session.user.id = token.id
+        session.user.role = token.role as string
       }
       return session
     },

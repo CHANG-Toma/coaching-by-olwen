@@ -2,8 +2,10 @@
 
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { useSession, signOut } from "next-auth/react"
 
 export default function Navbar() {
+  const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -14,6 +16,10 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" })
+  }
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -57,12 +63,37 @@ export default function Navbar() {
             >
               Témoignages
             </Link>
-            <Link 
-              href="/auth/signin" 
-              className="px-6 py-2 gradient-primary text-white rounded-full font-semibold hover:scale-105 transition-transform"
-            >
-              Se connecter
-            </Link>
+            {session ? (
+              <>
+                {session.user?.role === "CLIENT" && (
+                  <Link 
+                    href="/calendrier" 
+                    className="text-secondary-dark hover:text-primary-violet transition-colors font-medium"
+                  >
+                    Calendrier
+                  </Link>
+                )}
+                <Link 
+                  href={session.user?.role === "ADMIN" ? "/dashboard" : "/espace-client"} 
+                  className="px-6 py-2 gradient-primary text-white rounded-full font-semibold hover:scale-105 transition-transform"
+                >
+                  {session.user?.role === "ADMIN" ? "Accéder au dashboard" : "Accéder à mon espace"}
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="px-4 py-2 text-secondary-dark hover:text-primary-violet transition-colors font-medium"
+                >
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <Link 
+                href="/auth/signin" 
+                className="px-6 py-2 gradient-primary text-white rounded-full font-semibold hover:scale-105 transition-transform"
+              >
+                Se connecter
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -114,13 +145,43 @@ export default function Navbar() {
             >
               Témoignages
             </Link>
-            <Link 
-              href="/auth/signin" 
-              onClick={() => setIsOpen(false)}
-              className="block px-6 py-2 gradient-primary text-white rounded-full font-semibold text-center hover:shadow-lg transition-all"
-            >
-              Se connecter
-            </Link>
+            {session ? (
+              <>
+                {session.user?.role === "CLIENT" && (
+                  <Link 
+                    href="/calendrier" 
+                    onClick={() => setIsOpen(false)}
+                    className="block text-secondary-dark hover:text-primary-violet transition-colors font-medium py-2"
+                  >
+                    Calendrier
+                  </Link>
+                )}
+                <Link 
+                  href={session.user?.role === "ADMIN" ? "/dashboard" : "/espace-client"} 
+                  onClick={() => setIsOpen(false)}
+                  className="block px-6 py-2 gradient-primary text-white rounded-full font-semibold text-center hover:shadow-lg transition-all"
+                >
+                  {session.user?.role === "ADMIN" ? "Accéder au dashboard" : "Accéder à mon espace"}
+                </Link>
+                <button
+                  onClick={() => {
+                    setIsOpen(false)
+                    handleSignOut()
+                  }}
+                  className="block w-full text-left px-4 py-2 text-secondary-dark hover:text-primary-violet transition-colors font-medium"
+                >
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <Link 
+                href="/auth/signin" 
+                onClick={() => setIsOpen(false)}
+                className="block px-6 py-2 gradient-primary text-white rounded-full font-semibold text-center hover:shadow-lg transition-all"
+              >
+                Se connecter
+              </Link>
+            )}
           </div>
         </div>
       </div>

@@ -145,6 +145,38 @@ L'application utilise Auth.js (NextAuth.js v5) avec :
 - Sessions JWT
 - Protection des routes via middleware
 
+### Gestion des Rôles
+
+L'application supporte deux rôles :
+- **CLIENT** : Rôle par défaut pour tous les nouveaux utilisateurs
+- **ADMIN** : Rôle administrateur pour Olwen (accès au dashboard)
+
+#### Définir un utilisateur comme ADMIN
+
+Pour définir un utilisateur comme administrateur (par exemple Olwen), utilisez le script suivant :
+
+```bash
+npm run set-admin <email>
+```
+
+Exemple :
+```bash
+npm run set-admin olwen@example.com
+```
+
+**Note** : L'utilisateur doit exister dans la base de données avant de pouvoir être défini comme ADMIN.
+
+#### Pages selon le rôle
+
+- **CLIENT** :
+  - `/calendrier` - Prendre un rendez-vous
+  - `/espace-client` - Espace client (mes rendez-vous, documents, profil)
+
+- **ADMIN** :
+  - `/dashboard` - Dashboard administrateur (stats, gestion clients, devis/factures)
+
+Le Navbar s'adapte automatiquement selon le rôle de l'utilisateur connecté.
+
 ## 🎨 Charte graphique
 
 La charte graphique est définie dans `Docs/charte-graphique.md` :
@@ -164,6 +196,7 @@ La charte graphique est définie dans `Docs/charte-graphique.md` :
 - `npm run db:studio` - Ouvrir Prisma Studio (interface graphique)
 - `npm run db:generate` - Générer le client Prisma
 - `npm run db:migrate` - Créer une migration
+- `npm run set-admin <email>` - Définir un utilisateur comme ADMIN
 
 ### Commandes Docker
 

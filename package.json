@@ -14,7 +14,8 @@
     "docker:up": "docker-compose -f docker-compose.dev.yml up -d",
     "docker:down": "docker-compose -f docker-compose.dev.yml down",
     "docker:logs": "docker-compose -f docker-compose.dev.yml logs -f",
-    "docker:ps": "docker-compose -f docker-compose.dev.yml ps"
+    "docker:ps": "docker-compose -f docker-compose.dev.yml ps",
+    "set-admin": "npx tsx scripts/set-admin.ts"
   },
   "dependencies": {
     "next": "^14.2.0",
