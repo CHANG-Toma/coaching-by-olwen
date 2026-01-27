@@ -6,8 +6,6 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { email } = body
 
-    console.log("📧 Email reçu:", email)
-
     if (!email) {
       return NextResponse.json(
         { error: "Email requis" },
@@ -22,14 +20,6 @@ export async function POST(request: Request) {
 
     // Debug: afficher toutes les propriétés de l'utilisateur
     const userObj = user as any
-    console.log("👤 User trouvé:", user ? {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: userObj.role,
-      allFields: Object.keys(userObj),
-      rawUser: userObj
-    } : "null")
     
     // Vérifier si le champ role existe
     if (user && !userObj.role) {
