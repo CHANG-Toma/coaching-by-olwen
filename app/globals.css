@@ -99,4 +99,35 @@ body {
   .transition-smooth {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  /* High contrast mode */
+  .high-contrast {
+    filter: contrast(1.2);
+  }
+
+  .high-contrast * {
+    border-color: currentColor !important;
+  }
+
+  /* Focus visible for accessibility */
+  *:focus-visible {
+    outline: 3px solid #8E2DE2;
+    outline-offset: 2px;
+  }
+
+  /* Skip to main content link */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #8E2DE2;
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100;
+  }
+
+  .skip-link:focus {
+    top: 0;
+  }
 }

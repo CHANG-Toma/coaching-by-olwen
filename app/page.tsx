@@ -1,20 +1,22 @@
 import Navbar from "./components/Navbar"
-import Hero from "./components/Hero"
-import About from "./components/About"
-import Services from "./components/Services"
-import Testimonials from "./components/Testimonials"
-import CTA from "./components/CTA"
+import HeroMinimal from "./components/HeroMinimal"
+import ProcessMinimal from "./components/ProcessMinimal"
+import AboutMinimal from "./components/AboutMinimal"
+import ServicesMinimal from "./components/ServicesMinimal"
+import TestimonialsMinimal from "./components/TestimonialsMinimal"
+import CTAMinimal from "./components/CTAMinimal"
 import Footer from "./components/Footer"
 
 export default function Home() {
   return (
     <main className="min-h-screen">
       <Navbar />
-      <Hero />
-      <About />
-      <Services />
-      <Testimonials />
-      <CTA />
+      <HeroMinimal />
+      <ProcessMinimal />
+      <AboutMinimal />
+      <ServicesMinimal />
+      <TestimonialsMinimal />
+      <CTAMinimal />
       <Footer />
     </main>
   )

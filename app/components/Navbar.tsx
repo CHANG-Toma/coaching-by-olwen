@@ -35,37 +35,33 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-6">
             <Link 
               href="#about" 
-              className="text-secondary-dark hover:text-primary-violet transition-colors font-medium relative group"
+              className="text-secondary-dark hover:text-primary-violet transition-colors font-medium"
             >
               À propos
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-violet transition-all group-hover:w-full"></span>
+            </Link>
+            <Link 
+              href="#how-it-works" 
+              className="text-secondary-dark hover:text-primary-violet transition-colors font-medium"
+            >
+              Comment ça marche
             </Link>
             <Link 
               href="#services" 
-              className="text-secondary-dark hover:text-primary-violet transition-colors font-medium relative group"
+              className="text-secondary-dark hover:text-primary-violet transition-colors font-medium"
             >
               Services
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-violet transition-all group-hover:w-full"></span>
             </Link>
             <Link 
               href="#testimonials" 
-              className="text-secondary-dark hover:text-primary-violet transition-colors font-medium relative group"
+              className="text-secondary-dark hover:text-primary-violet transition-colors font-medium"
             >
               Témoignages
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-violet transition-all group-hover:w-full"></span>
             </Link>
             <Link 
               href="#contact" 
-              className="text-secondary-dark hover:text-primary-violet transition-colors font-medium relative group"
+              className="px-6 py-2 gradient-primary text-white rounded-full font-semibold hover:scale-105 transition-transform"
             >
-              Contact
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-violet transition-all group-hover:w-full"></span>
-            </Link>
-            <Link 
-              href="/auth/signin" 
-              className="px-6 py-2 gradient-primary text-white rounded-full font-semibold hover:scale-105 hover:shadow-lg transition-all"
-            >
-              Connexion
+              Commencer
             </Link>
           </div>
 
@@ -98,6 +94,13 @@ export default function Navbar() {
               À propos
             </Link>
             <Link 
+              href="#how-it-works" 
+              onClick={() => setIsOpen(false)}
+              className="block text-secondary-dark hover:text-primary-violet transition-colors font-medium py-2"
+            >
+              Comment ça marche
+            </Link>
+            <Link 
               href="#services" 
               onClick={() => setIsOpen(false)}
               className="block text-secondary-dark hover:text-primary-violet transition-colors font-medium py-2"
@@ -114,16 +117,9 @@ export default function Navbar() {
             <Link 
               href="#contact" 
               onClick={() => setIsOpen(false)}
-              className="block text-secondary-dark hover:text-primary-violet transition-colors font-medium py-2"
-            >
-              Contact
-            </Link>
-            <Link 
-              href="/auth/signin" 
-              onClick={() => setIsOpen(false)}
               className="block px-6 py-2 gradient-primary text-white rounded-full font-semibold text-center hover:shadow-lg transition-all"
             >
-              Connexion
+              Commencer
             </Link>
           </div>
         </div>
