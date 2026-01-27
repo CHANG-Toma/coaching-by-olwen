@@ -50,10 +50,6 @@ export async function POST(request: Request) {
     const role2 = userObj?.role
     const role3 = (user as Record<string, any>).role
     
-    console.log("🎭 Rôle récupéré (méthode 1):", role1, "Type:", typeof role1)
-    console.log("🎭 Rôle récupéré (méthode 2):", role2, "Type:", typeof role2)
-    console.log("🎭 Rôle récupéré (méthode 3):", role3, "Type:", typeof role3)
-    
     // Vérifier directement dans la DB avec une requête SQL brute si nécessaire
     let finalRole = role1 || role2 || role3
     
@@ -65,7 +61,6 @@ export async function POST(request: Request) {
         ` as any[]
         if (rawUser && rawUser.length > 0) {
           finalRole = rawUser[0].role
-          console.log("✅ Rôle récupéré via SQL brut:", finalRole)
         }
       } catch (sqlError) {
         console.error("❌ Erreur SQL brute:", sqlError)
@@ -74,10 +69,8 @@ export async function POST(request: Request) {
     
     // Utiliser le rôle trouvé ou CLIENT par défaut
     finalRole = finalRole || "CLIENT"
-    console.log("✅ Rôle final utilisé:", finalRole)
 
     const response = { role: finalRole }
-    console.log("📤 Réponse envoyée:", JSON.stringify(response))
 
     return NextResponse.json(response, { status: 200 })
   } catch (error: any) {
