@@ -1,9 +1,86 @@
 "use client"
 
 import { useSession } from "next-auth/react"
+import { useEffect, useState } from "react"
+import Link from "next/link"
+
+type Totals = {
+  totalUsers: number
+  totalClients: number
+  totalAdmins: number
+  newUsersLast30Days: number
+  totalAppointments: number
+  confirmedAppointments: number
+  pendingAppointments: number
+  cancelledAppointments: number
+  completedAppointments: number
+  upcomingAppointments: number
+  appointmentsLast30Days: number
+}
+
+type Appointment = {
+  id: string
+  startTime: string
+  endTime: string
+  status: string
+  notes: string | null
+  user: {
+    name: string | null
+    email: string
+  }
+}
 
 export default function DashboardPage() {
   const { data: session } = useSession()
+  const [stats, setStats] = useState<Totals | null>(null)
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Charger les statistiques
+        const statsRes = await fetch("/api/admin/statistics", {
+          method: "GET",
+          cache: "no-store",
+        })
+        if (statsRes.ok) {
+          const statsData = await statsRes.json()
+          setStats(statsData.totals)
+        }
+
+        // Charger les rendez-vous à venir
+        const now = new Date()
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+        const appointmentsRes = await fetch(
+          `/api/appointments?startDate=${now.toISOString()}&endDate=${endOfMonth.toISOString()}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        )
+        if (appointmentsRes.ok) {
+          const appointmentsData = await appointmentsRes.json()
+          // L'API retourne { appointments: [...] }
+          const appointments = appointmentsData.appointments || appointmentsData
+          // Filtrer les rendez-vous annulés et trier par date, puis prendre les 5 prochains
+          const sorted = appointments
+            .filter((a: Appointment) => a.status !== "CANCELLED")
+            .sort((a: Appointment, b: Appointment) => 
+              new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+            )
+            .slice(0, 5)
+          setUpcomingAppointments(sorted)
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des données:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   return (
     <div>
@@ -39,7 +116,9 @@ export default function DashboardPage() {
                   </svg>
                 </div>
               </div>
-              <p className="text-3xl font-heading font-bold text-secondary-dark">0</p>
+              <p className="text-3xl font-heading font-bold text-secondary-dark">
+                {loading ? "..." : stats?.totalClients || 0}
+              </p>
               <p className="text-sm text-secondary-dark/60 mt-1 font-body">
                 Clients actifs
               </p>
@@ -66,7 +145,9 @@ export default function DashboardPage() {
                   </svg>
                 </div>
               </div>
-              <p className="text-3xl font-heading font-bold text-secondary-dark">0</p>
+              <p className="text-3xl font-heading font-bold text-secondary-dark">
+                {loading ? "..." : stats?.appointmentsLast30Days || 0}
+              </p>
               <p className="text-sm text-secondary-dark/60 mt-1 font-body">
                 Ce mois-ci
               </p>
@@ -135,7 +216,10 @@ export default function DashboardPage() {
                 Gestion des Clients
               </h2>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 border-2 border-secondary-light rounded-lg">
+                <Link
+                  href="/dashboard/clients"
+                  className="flex items-center justify-between p-4 border-2 border-secondary-light rounded-lg hover:border-primary-violet transition-colors"
+                >
                   <div>
                     <p className="font-semibold text-secondary-dark font-body">
                       Liste des clients
@@ -144,11 +228,14 @@ export default function DashboardPage() {
                       Voir et gérer tous vos clients
                     </p>
                   </div>
-                  <button className="px-4 py-2 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body">
+                  <div className="px-4 py-2 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body">
                     Voir
-                  </button>
-                </div>
-                <div className="flex items-center justify-between p-4 border-2 border-secondary-light rounded-lg">
+                  </div>
+                </Link>
+                <Link
+                  href="/dashboard/clients?add=true"
+                  className="flex items-center justify-between p-4 border-2 border-secondary-light rounded-lg hover:border-primary-violet transition-colors"
+                >
                   <div>
                     <p className="font-semibold text-secondary-dark font-body">
                       Nouveau client
@@ -157,10 +244,10 @@ export default function DashboardPage() {
                       Ajouter un client manuellement
                     </p>
                   </div>
-                  <button className="px-4 py-2 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body">
+                  <div className="px-4 py-2 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body">
                     Ajouter
-                  </button>
-                </div>
+                  </div>
+                </Link>
               </div>
             </div>
 
@@ -170,31 +257,31 @@ export default function DashboardPage() {
                 Devis & Factures
               </h2>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 border-2 border-secondary-light rounded-lg">
+                <div className="flex items-center justify-between p-4 border-2 border-secondary-light rounded-lg opacity-60">
                   <div>
                     <p className="font-semibold text-secondary-dark font-body">
                       Créer un devis
                     </p>
                     <p className="text-sm text-secondary-dark/60 font-body">
-                      Générer un nouveau devis
+                      Bientôt disponible
                     </p>
                   </div>
-                  <button className="px-4 py-2 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body">
+                  <div className="px-4 py-2 bg-gray-300 text-gray-600 rounded-lg font-semibold font-body cursor-not-allowed">
                     Créer
-                  </button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-4 border-2 border-secondary-light rounded-lg">
+                <div className="flex items-center justify-between p-4 border-2 border-secondary-light rounded-lg opacity-60">
                   <div>
                     <p className="font-semibold text-secondary-dark font-body">
                       Voir les factures
                     </p>
                     <p className="text-sm text-secondary-dark/60 font-body">
-                      Consulter toutes les factures
+                      Bientôt disponible
                     </p>
                   </div>
-                  <button className="px-4 py-2 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body">
+                  <div className="px-4 py-2 bg-gray-300 text-gray-600 rounded-lg font-semibold font-body cursor-not-allowed">
                     Voir
-                  </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -204,13 +291,73 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Rendez-vous à venir */}
         <div className="bg-white rounded-2xl p-6 shadow-lg">
-          <h2 className="text-xl font-heading font-bold text-secondary-dark mb-4">
-            Rendez-vous à venir
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-heading font-bold text-secondary-dark">
+              Rendez-vous à venir
+            </h2>
+            <Link
+              href="/dashboard/planning"
+              className="text-sm text-primary-violet hover:underline font-body"
+            >
+              Voir tout
+            </Link>
+          </div>
           <div className="space-y-3">
-            <div className="p-4 border-2 border-secondary-light rounded-lg">
-              <p className="text-sm text-secondary-dark/60 font-body">Aucun rendez-vous prévu</p>
-            </div>
+            {loading ? (
+              <div className="p-4 border-2 border-secondary-light rounded-lg">
+                <p className="text-sm text-secondary-dark/60 font-body">Chargement...</p>
+              </div>
+            ) : upcomingAppointments.length === 0 ? (
+              <div className="p-4 border-2 border-secondary-light rounded-lg">
+                <p className="text-sm text-secondary-dark/60 font-body">Aucun rendez-vous prévu</p>
+              </div>
+            ) : (
+              upcomingAppointments.map((appointment) => {
+                const date = new Date(appointment.startTime)
+                const formattedDate = date.toLocaleDateString("fr-FR", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
+                const formattedTime = date.toLocaleTimeString("fr-FR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+                return (
+                  <Link
+                    key={appointment.id}
+                    href="/dashboard/planning"
+                    className="block p-4 border-2 border-secondary-light rounded-lg hover:border-primary-violet transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-secondary-dark font-body">
+                          {appointment.user.name || appointment.user.email}
+                        </p>
+                        <p className="text-sm text-secondary-dark/60 font-body">
+                          {formattedDate} à {formattedTime}
+                        </p>
+                      </div>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium font-body ${
+                          appointment.status === "CONFIRMED"
+                            ? "bg-green-100 text-green-800"
+                            : appointment.status === "PENDING"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {appointment.status === "CONFIRMED"
+                          ? "Confirmé"
+                          : appointment.status === "PENDING"
+                          ? "En attente"
+                          : appointment.status}
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })
+            )}
           </div>
         </div>
 
@@ -247,11 +394,11 @@ export default function DashboardPage() {
               </svg>
               <p className="text-sm font-medium text-secondary-dark font-body">Stats</p>
             </a>
-            <div className="p-4 border-2 border-secondary-light rounded-lg hover:border-primary-violet transition-colors text-center cursor-pointer">
-              <svg className="w-8 h-8 mx-auto mb-2 text-primary-violet" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-4 border-2 border-secondary-light rounded-lg opacity-60 text-center cursor-not-allowed">
+              <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <p className="text-sm font-medium text-secondary-dark font-body">Devis</p>
+              <p className="text-sm font-medium text-secondary-dark/60 font-body">Devis</p>
             </div>
           </div>
         </div>

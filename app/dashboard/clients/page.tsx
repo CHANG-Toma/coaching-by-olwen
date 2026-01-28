@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useToast } from "@/app/contexts/ToastContext"
 
@@ -17,16 +17,29 @@ interface User {
 export default function ClientsPage() {
   const { data: session } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { showSuccess, showError, showWarning } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [updating, setUpdating] = useState<string | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [adding, setAdding] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  })
 
   useEffect(() => {
     fetchUsers()
-  }, [])
+    // Ouvrir le modal si le paramètre add=true est présent
+    if (searchParams.get("add") === "true") {
+      setShowAddModal(true)
+    }
+  }, [searchParams])
 
   const fetchUsers = async () => {
     try {
@@ -86,6 +99,61 @@ export default function ClientsPage() {
     }
   }
 
+  const handleAddClient = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setAdding(true)
+
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      setError("Les mots de passe ne correspondent pas")
+      setAdding(false)
+      return
+    }
+
+    if (formData.password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères")
+      setAdding(false)
+      return
+    }
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Une erreur est survenue")
+      }
+
+      showSuccess("Client ajouté avec succès")
+      setShowAddModal(false)
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      })
+      // Retirer le paramètre add de l'URL
+      router.push("/dashboard/clients")
+      await fetchUsers()
+    } catch (err: any) {
+      setError(err.message || "Une erreur est survenue")
+    } finally {
+      setAdding(false)
+    }
+  }
+
   const filteredUsers = users.filter((user) => {
     const search = searchTerm.toLowerCase()
     return (
@@ -105,6 +173,12 @@ export default function ClientsPage() {
             Gérez tous les utilisateurs et leurs rôles
           </p>
         </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="px-6 py-3 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body"
+        >
+          + Nouveau client
+        </button>
       </div>
 
       {/* Barre de recherche */}
@@ -224,6 +298,143 @@ export default function ClientsPage() {
           </div>
         )}
       </div>
+
+      {/* Modal d'ajout de client */}
+      {showAddModal && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAddModal(false)
+              router.push("/dashboard/clients")
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl p-6 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-heading font-bold text-secondary-dark">
+                Nouveau client
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false)
+                  router.push("/dashboard/clients")
+                }}
+                className="text-secondary-dark/60 hover:text-secondary-dark transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleAddClient} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-body">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-secondary-dark mb-2 font-body">
+                  Nom complet *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border-2 border-secondary-light rounded-lg focus:border-primary-violet focus:outline-none font-body"
+                  placeholder="Jean Dupont"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-secondary-dark mb-2 font-body">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border-2 border-secondary-light rounded-lg focus:border-primary-violet focus:outline-none font-body"
+                  placeholder="jean.dupont@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-secondary-dark mb-2 font-body">
+                  Mot de passe *
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border-2 border-secondary-light rounded-lg focus:border-primary-violet focus:outline-none font-body"
+                  placeholder="Minimum 6 caractères"
+                  minLength={6}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-secondary-dark mb-2 font-body">
+                  Confirmer le mot de passe *
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) =>
+                    setFormData({ ...formData, confirmPassword: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border-2 border-secondary-light rounded-lg focus:border-primary-violet focus:outline-none font-body"
+                  placeholder="Répétez le mot de passe"
+                  minLength={6}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false)
+                    router.push("/dashboard/clients")
+                  }}
+                  className="flex-1 px-4 py-2 border-2 border-secondary-light text-secondary-dark rounded-lg hover:bg-secondary-light transition-colors font-body"
+                  disabled={adding}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={adding}
+                  className="flex-1 px-4 py-2 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {adding ? "Ajout..." : "Ajouter"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

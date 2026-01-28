@@ -68,8 +68,74 @@ export async function GET() {
       })
     }
 
-    // Placeholders pour des stats plus avancées
-    // Vous pourrez les remplacer par de vraies données (rendez-vous, paiements, etc.)
+    // Statistiques des rendez-vous
+    const [
+      totalAppointments,
+      confirmedAppointments,
+      pendingAppointments,
+      cancelledAppointments,
+      completedAppointments,
+      upcomingAppointments,
+      appointmentsLast30Days,
+    ] = await Promise.all([
+      prisma.appointment.count(),
+      prisma.appointment.count({ where: { status: "CONFIRMED" } }),
+      prisma.appointment.count({ where: { status: "PENDING" } }),
+      prisma.appointment.count({ where: { status: "CANCELLED" } }),
+      prisma.appointment.count({ where: { status: "COMPLETED" } }),
+      prisma.appointment.count({
+        where: {
+          startTime: {
+            gte: now,
+          },
+          status: {
+            not: "CANCELLED",
+          },
+        },
+      }),
+      prisma.appointment.count({
+        where: {
+          createdAt: {
+            gte: thirtyDaysAgo,
+          },
+        },
+      }),
+    ])
+
+    // Évolution des rendez-vous sur les 6 derniers mois
+    const monthlyAppointments: MonthlyCount[] = []
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const { start, end } = getMonthRange(d)
+
+      const count = await prisma.appointment.count({
+        where: {
+          startTime: {
+            gte: start,
+            lt: end,
+          },
+          status: {
+            not: "CANCELLED",
+          },
+        },
+      })
+
+      monthlyAppointments.push({
+        month: d.getMonth() + 1,
+        year: d.getFullYear(),
+        count,
+      })
+    }
+
+    // Calculs de métriques
+    const confirmationRate =
+      totalAppointments > 0 ? Math.round((confirmedAppointments / totalAppointments) * 100) : 0
+    const cancellationRate =
+      totalAppointments > 0 ? Math.round((cancelledAppointments / totalAppointments) * 100) : 0
+    const averageAppointmentsPerClient =
+      totalClients > 0 ? Math.round((totalAppointments / totalClients) * 10) / 10 : 0
+
+    // Placeholders pour des stats plus avancées (revenus, satisfaction)
     const conversionRate = 0
     const retentionRate = 0
     const satisfaction = 0
@@ -80,12 +146,23 @@ export async function GET() {
         totalClients,
         totalAdmins,
         newUsersLast30Days,
+        totalAppointments,
+        confirmedAppointments,
+        pendingAppointments,
+        cancelledAppointments,
+        completedAppointments,
+        upcomingAppointments,
+        appointmentsLast30Days,
       },
       monthlyClients,
+      monthlyAppointments,
       metrics: {
         conversionRate,
         retentionRate,
         satisfaction,
+        confirmationRate,
+        cancellationRate,
+        averageAppointmentsPerClient,
       },
     })
   } catch (error) {
