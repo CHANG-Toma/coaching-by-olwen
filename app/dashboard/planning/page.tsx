@@ -45,6 +45,7 @@ export default function PlanningPage() {
   const [loading, setLoading] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showDateModal, setShowDateModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [clients, setClients] = useState<User[]>([])
   const [loadingClients, setLoadingClients] = useState(false)
@@ -119,12 +120,26 @@ export default function PlanningPage() {
   }
 
   const getAppointmentsForDate = (date: Date) => {
-    const dateStr = date.toISOString().split("T")[0]
-    return appointments.filter(
-      (apt) =>
-        new Date(apt.startTime).toISOString().split("T")[0] === dateStr &&
-        apt.status !== "CANCELLED"
-    )
+    // Extraire les composants de date locale pour éviter les problèmes de fuseau horaire
+    const dateYear = date.getFullYear()
+    const dateMonth = date.getMonth()
+    const dateDay = date.getDate()
+    
+    return appointments.filter((apt) => {
+      if (apt.status === "CANCELLED") return false
+      
+      const aptDate = new Date(apt.startTime)
+      const aptYear = aptDate.getFullYear()
+      const aptMonth = aptDate.getMonth()
+      const aptDay = aptDate.getDate()
+      
+      // Comparer les dates calendaires (jour/mois/année)
+      return (
+        dateYear === aptYear &&
+        dateMonth === aptMonth &&
+        dateDay === aptDay
+      )
+    })
   }
 
   const handleStatusChange = async (appointmentId: string, newStatus: string) => {
@@ -173,9 +188,93 @@ export default function PlanningPage() {
     }
   }
 
+  // Fonction helper pour formater une date en YYYY-MM-DD sans conversion UTC
+  const formatDateForInput = (date: Date): string => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
+  }
+
+  const isTimePastForDate = (date: string, time: string) => {
+    if (!date || !time) return false
+    
+    // Extraire les composants de date directement depuis la chaîne pour éviter les problèmes de fuseau horaire
+    const [year, month, day] = date.split("-").map(Number)
+    const [hours, minutes] = time.split(":").map(Number)
+    
+    // Créer la date/heure du rendez-vous en utilisant les composants locaux
+    const appointmentTime = new Date(year, month - 1, day, hours, minutes, 0, 0)
+    
+    // Obtenir la date actuelle
+    const today = new Date()
+    
+    // Comparer les dates calendaires (jour/mois/année) en utilisant les composants
+    const appointmentYear = appointmentTime.getFullYear()
+    const appointmentMonth = appointmentTime.getMonth()
+    const appointmentDay = appointmentTime.getDate()
+    
+    const todayYear = today.getFullYear()
+    const todayMonth = today.getMonth()
+    const todayDay = today.getDate()
+    
+    // Si c'est le jour même, vérifier que l'heure n'est pas passée (avec une marge de 30 minutes)
+    const isToday = appointmentYear === todayYear && 
+                   appointmentMonth === todayMonth && 
+                   appointmentDay === todayDay
+    
+    if (isToday) {
+      const thirtyMinutesFromNow = new Date(today.getTime() + 30 * 60 * 1000)
+      return appointmentTime < thirtyMinutesFromNow
+    }
+    
+    // Si c'est un jour passé, retourner true (heure passée)
+    const isPastDay = appointmentYear < todayYear || 
+                     (appointmentYear === todayYear && appointmentMonth < todayMonth) ||
+                     (appointmentYear === todayYear && appointmentMonth === todayMonth && appointmentDay < todayDay)
+    
+    return isPastDay
+  }
+
+  // Vérifier si un créneau horaire est déjà réservé pour une date donnée
+  const isTimeSlotBooked = (date: string, time: string) => {
+    if (!date || !time) return false
+    
+    // Extraire les composants de date directement depuis la chaîne
+    const [year, month, day] = date.split("-").map(Number)
+    const [hours, minutes] = time.split(":").map(Number)
+    
+    // Vérifier si un rendez-vous existe déjà pour cette date et cette heure
+    return appointments.some((apt) => {
+      if (apt.status === "CANCELLED") return false
+      
+      const aptDate = new Date(apt.startTime)
+      const aptYear = aptDate.getFullYear()
+      const aptMonth = aptDate.getMonth()
+      const aptDay = aptDate.getDate()
+      const aptHours = aptDate.getHours()
+      const aptMinutes = aptDate.getMinutes()
+      
+      // Comparer la date calendaire et l'heure
+      return (
+        year === aptYear &&
+        month - 1 === aptMonth &&
+        day === aptDay &&
+        hours === aptHours &&
+        minutes === aptMinutes
+      )
+    })
+  }
+
   const handleCreateAppointment = async () => {
     if (!formData.userId || !formData.date || !formData.time) {
       showError("Veuillez remplir tous les champs obligatoires")
+      return
+    }
+
+    // Vérifier si l'heure est passée pour le jour même
+    if (isTimePastForDate(formData.date, formData.time)) {
+      showError("Impossible de créer un rendez-vous dans moins de 30 minutes")
       return
     }
 
@@ -183,14 +282,16 @@ export default function PlanningPage() {
       setCreating(true)
       const [hours, minutes] = formData.time.split(":").map(Number)
       
-      // Créer la date en utilisant la date locale pour éviter les problèmes de fuseau horaire
+      // Créer la date en utilisant Date.UTC pour éviter les problèmes de conversion de fuseau horaire
+      // Cela garantit que la date calendaire reste la même après conversion ISO
       const dateParts = formData.date.split("-")
       const year = parseInt(dateParts[0])
       const month = parseInt(dateParts[1]) - 1 // Les mois sont 0-indexés en JS
       const day = parseInt(dateParts[2])
       
-      const startTime = new Date(year, month, day, hours, minutes, 0, 0)
-      const endTime = new Date(year, month, day, hours + 1, minutes, 0, 0)
+      // Créer les dates en UTC pour préserver la date calendaire exacte
+      const startTime = new Date(Date.UTC(year, month, day, hours, minutes, 0, 0))
+      const endTime = new Date(Date.UTC(year, month, day, hours + 1, minutes, 0, 0))
 
       const response = await fetch("/api/appointments", {
         method: "POST",
@@ -346,10 +447,7 @@ export default function PlanningPage() {
                   key={date.toISOString()}
                   onClick={() => {
                     setSelectedDate(date)
-                    if (dayAppointments.length > 0) {
-                      setSelectedAppointment(dayAppointments[0])
-                      setShowModal(true)
-                    }
+                    setShowDateModal(true)
                   }}
                   className={`aspect-square rounded-lg font-body transition-all relative ${
                     isSelected
@@ -374,63 +472,6 @@ export default function PlanningPage() {
             })}
           </div>
 
-          {/* Liste des rendez-vous du jour sélectionné */}
-          {selectedDate && (
-            <div className="mt-6 pt-6 border-t border-secondary-light">
-              <h3 className="text-lg font-heading font-bold text-secondary-dark mb-4">
-                Rendez-vous du {selectedDate.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
-              </h3>
-              {getAppointmentsForDate(selectedDate).length === 0 ? (
-                <p className="text-secondary-dark/60 font-body text-center py-4">
-                  Aucun rendez-vous ce jour
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {getAppointmentsForDate(selectedDate).map((apt) => {
-                    const start = new Date(apt.startTime)
-                    const end = new Date(apt.endTime)
-                    return (
-                      <div
-                        key={apt.id}
-                        onClick={() => {
-                          setSelectedAppointment(apt)
-                          setShowModal(true)
-                        }}
-                        className="p-3 border-2 border-secondary-light rounded-lg hover:border-primary-violet transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <p className="font-heading font-bold text-secondary-dark">
-                              {apt.user.name || apt.user.email}
-                            </p>
-                            <p className="text-sm text-secondary-dark/60 font-body">
-                              {start.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })} -{" "}
-                              {end.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-                            </p>
-                            <span
-                              className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-semibold font-body ${
-                                apt.status === "CONFIRMED"
-                                  ? "bg-green-100 text-green-800"
-                                  : apt.status === "PENDING"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-blue-100 text-blue-800"
-                              }`}
-                            >
-                              {apt.status === "CONFIRMED"
-                                ? "Confirmé"
-                                : apt.status === "PENDING"
-                                ? "En attente"
-                                : "Terminé"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Liste des rendez-vous */}
@@ -514,6 +555,116 @@ export default function PlanningPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal des rendez-vous du jour */}
+      {showDateModal && selectedDate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-heading font-bold text-secondary-dark">
+                Rendez-vous du {selectedDate.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowDateModal(false)
+                  setSelectedDate(null)
+                }}
+                className="p-2 hover:bg-secondary-light rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5 text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Liste des rendez-vous du jour */}
+            {getAppointmentsForDate(selectedDate).length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-secondary-dark/60 font-body mb-4">
+                  Aucun rendez-vous ce jour
+                </p>
+                <button
+                  onClick={() => {
+                    setShowDateModal(false)
+                    setFormData({
+                      ...formData,
+                      date: formatDateForInput(selectedDate),
+                    })
+                    setShowCreateModal(true)
+                  }}
+                  className="px-6 py-3 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body"
+                >
+                  + Créer un rendez-vous
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3 mb-4">
+                {getAppointmentsForDate(selectedDate).map((apt) => {
+                  const start = new Date(apt.startTime)
+                  const end = new Date(apt.endTime)
+                  return (
+                    <div
+                      key={apt.id}
+                      onClick={() => {
+                        setShowDateModal(false)
+                        setSelectedAppointment(apt)
+                        setShowModal(true)
+                      }}
+                      className="p-4 border-2 border-secondary-light rounded-lg hover:border-primary-violet transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-heading font-bold text-secondary-dark">
+                            {apt.user.name || apt.user.email}
+                          </p>
+                          <p className="text-sm text-secondary-dark/60 font-body">
+                            {start.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })} -{" "}
+                            {end.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                          <span
+                            className={`inline-block mt-2 px-2 py-1 rounded-full text-xs font-semibold font-body ${
+                              apt.status === "CONFIRMED"
+                                ? "bg-green-100 text-green-800"
+                                : apt.status === "PENDING"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {apt.status === "CONFIRMED"
+                              ? "Confirmé"
+                              : apt.status === "PENDING"
+                              ? "En attente"
+                              : "Terminé"}
+                          </span>
+                        </div>
+                        <svg className="w-5 h-5 text-secondary-dark/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {getAppointmentsForDate(selectedDate).length > 0 && (
+              <button
+                onClick={() => {
+                  setShowDateModal(false)
+                  setFormData({
+                    ...formData,
+                    date: formatDateForInput(selectedDate),
+                  })
+                  setShowCreateModal(true)
+                }}
+                className="w-full px-6 py-3 gradient-primary text-white rounded-lg font-semibold hover:scale-105 transition-transform font-body"
+              >
+                + Nouveau rendez-vous
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Modal de détails */}
       {showModal && selectedAppointment && (
@@ -690,12 +841,31 @@ export default function PlanningPage() {
                   className="w-full px-4 py-2 border-2 border-secondary-light rounded-lg focus:border-primary-violet focus:outline-none font-body"
                 >
                   <option value="">Sélectionner une heure</option>
-                  {TIME_SLOTS.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
+                  {TIME_SLOTS.map((time) => {
+                    const isPast = formData.date ? isTimePastForDate(formData.date, time) : false
+                    const isBooked = formData.date ? isTimeSlotBooked(formData.date, time) : false
+                    const isDisabled = isPast || isBooked
+                    return (
+                      <option key={time} value={time} disabled={isDisabled}>
+                        {time} {isPast ? "(passée)" : isBooked ? "(réservé)" : ""}
+                      </option>
+                    )
+                  })}
                 </select>
+                {formData.date && formData.time && (
+                  <>
+                    {isTimePastForDate(formData.date, formData.time) && (
+                      <p className="text-sm text-red-600 font-body mt-1">
+                        Cette heure est déjà passée. Veuillez sélectionner une heure future.
+                      </p>
+                    )}
+                    {isTimeSlotBooked(formData.date, formData.time) && (
+                      <p className="text-sm text-orange-600 font-body mt-1">
+                        Ce créneau est déjà réservé. Veuillez sélectionner une autre heure.
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
 
               <div>

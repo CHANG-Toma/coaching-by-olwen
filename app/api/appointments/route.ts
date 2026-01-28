@@ -89,15 +89,80 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "La date de fin doit être après la date de début" }, { status: 400 })
     }
 
-    // Vérifier que la date n'est pas dans le passé (avec une marge de 1 minute pour éviter les problèmes de timing)
+    // Vérifier que le rendez-vous n'est pas dans le passé
+    // Permettre les rendez-vous le jour même tant que l'heure n'est pas passée
     const now = new Date()
-    now.setSeconds(0, 0) // Ignorer les secondes et millisecondes
-    if (start < now) {
+    
+    // Logs de débogage
+    console.log("=== DEBUG VALIDATION DATE ===")
+    console.log("startTime reçu (ISO):", startTime)
+    console.log("start parsé:", start.toISOString())
+    console.log("start local:", start.toLocaleString("fr-FR"))
+    console.log("now:", now.toISOString())
+    console.log("now local:", now.toLocaleString("fr-FR"))
+    
+    // Extraire la date calendaire directement depuis la chaîne ISO (format: YYYY-MM-DDTHH:mm:ss.sssZ)
+    // Cela évite les problèmes de conversion de fuseau horaire
+    const startDateStr = startTime.split("T")[0] // "YYYY-MM-DD"
+    const [startYear, startMonth, startDay] = startDateStr.split("-").map(Number)
+    
+    // Extraire la date calendaire actuelle (en UTC pour être cohérent)
+    const nowDateStr = now.toISOString().split("T")[0]
+    const [nowYear, nowMonth, nowDay] = nowDateStr.split("-").map(Number)
+    
+    console.log("start date calendaire (depuis ISO):", `${startDay}/${startMonth}/${startYear}`)
+    console.log("now date calendaire (depuis ISO):", `${nowDay}/${nowMonth}/${nowYear}`)
+    
+    // Comparer les dates calendaires
+    const isPastDay = startYear < nowYear || 
+                     (startYear === nowYear && startMonth < nowMonth) ||
+                     (startYear === nowYear && startMonth === nowMonth && startDay < nowDay)
+    
+    const isToday = startYear === nowYear && startMonth === nowMonth && startDay === nowDay
+    const isFutureDay = !isPastDay && !isToday
+    
+    console.log("isPastDay:", isPastDay)
+    console.log("isToday:", isToday)
+    console.log("isFutureDay:", isFutureDay)
+    
+    // Si c'est un jour passé, rejeter
+    if (isPastDay) {
+      console.log("❌ ERREUR: Jour passé détecté")
       return NextResponse.json(
         { error: "Impossible de créer un rendez-vous dans le passé" },
         { status: 400 }
       )
     }
+    
+    // Si c'est le jour même, vérifier que l'heure est dans au moins 30 minutes
+    if (isToday) {
+      const startTimeInMs = start.getTime()
+      const nowTimeInMs = now.getTime()
+      const thirtyMinutesInMs = 30 * 60 * 1000
+      const timeDiff = startTimeInMs - (nowTimeInMs + thirtyMinutesInMs)
+      
+      console.log("startTimeInMs:", startTimeInMs)
+      console.log("nowTimeInMs:", nowTimeInMs)
+      console.log("nowTimeInMs + 30min:", nowTimeInMs + thirtyMinutesInMs)
+      console.log("timeDiff (ms):", timeDiff)
+      console.log("timeDiff (minutes):", Math.round(timeDiff / 60000))
+      
+      if (startTimeInMs < nowTimeInMs + thirtyMinutesInMs) {
+        console.log("❌ ERREUR: Moins de 30 minutes")
+        return NextResponse.json(
+          { error: "Impossible de créer un rendez-vous dans moins de 30 minutes" },
+          { status: 400 }
+        )
+      }
+    }
+    
+    // Si c'est un jour futur, accepter sans vérification d'heure
+    if (isFutureDay) {
+      console.log("✅ Jour futur - Validation OK (pas de vérification d'heure)")
+    } else {
+      console.log("✅ Validation OK")
+    }
+    console.log("===================")
 
     // Déterminer l'utilisateur cible
     let appointmentUserId: string
