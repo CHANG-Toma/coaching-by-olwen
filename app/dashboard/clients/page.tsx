@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { useToast } from "@/app/contexts/ToastContext"
 
 interface User {
   id: string
@@ -15,6 +17,7 @@ interface User {
 export default function ClientsPage() {
   const { data: session } = useSession()
   const router = useRouter()
+  const { showSuccess, showError, showWarning } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,15 +71,16 @@ export default function ClientsPage() {
             : "Votre rôle a été changé en CLIENT. Vous devez vous reconnecter. Voulez-vous vous déconnecter maintenant ?"
         
         if (window.confirm(confirmMessage)) {
+          showWarning("Déconnexion en cours...")
           await signOut({ callbackUrl: "/auth/signin" })
           return
         }
       } else {
         // Pour les autres utilisateurs, afficher un message de succès
-        alert(`Rôle de l'utilisateur mis à jour avec succès. L'utilisateur devra se déconnecter et se reconnecter pour que les changements prennent effet.`)
+        showSuccess("Rôle de l'utilisateur mis à jour avec succès. L'utilisateur devra se déconnecter et se reconnecter pour que les changements prennent effet.")
       }
     } catch (err: any) {
-      alert(err.message || "Une erreur est survenue")
+      showError(err.message || "Une erreur est survenue")
     } finally {
       setUpdating(null)
     }
@@ -174,7 +178,11 @@ export default function ClientsPage() {
                   </tr>
                 ) : (
                   filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-secondary-light/20">
+                    <tr
+                      key={user.id}
+                      className="hover:bg-secondary-light/20 cursor-pointer"
+                      onClick={() => router.push(`/dashboard/clients/${user.id}`)}
+                    >
                       <td className="px-6 py-4 font-body">
                         {user.name || "Non renseigné"}
                       </td>
@@ -193,18 +201,20 @@ export default function ClientsPage() {
                       <td className="px-6 py-4 text-sm text-secondary-dark/60 font-body">
                         {new Date(user.createdAt).toLocaleDateString("fr-FR")}
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <select
-                          value={user.role}
-                          onChange={(e) =>
-                            updateRole(user.id, e.target.value as "CLIENT" | "ADMIN")
-                          }
-                          disabled={updating === user.id}
-                          className="px-3 py-1 border-2 border-secondary-light rounded-lg focus:border-primary-violet focus:outline-none font-body text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <option value="CLIENT">CLIENT</option>
-                          <option value="ADMIN">ADMIN</option>
-                        </select>
+                      <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-2">
+                          <select
+                            value={user.role}
+                            onChange={(e) =>
+                              updateRole(user.id, e.target.value as "CLIENT" | "ADMIN")
+                            }
+                            disabled={updating === user.id}
+                            className="px-3 py-1 border-2 border-secondary-light rounded-lg focus:border-primary-violet focus:outline-none font-body text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <option value="CLIENT">CLIENT</option>
+                            <option value="ADMIN">ADMIN</option>
+                          </select>
+                        </div>
                       </td>
                     </tr>
                   ))
