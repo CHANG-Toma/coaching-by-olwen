@@ -40,25 +40,25 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <Link 
-              href="#about" 
+              href="/#about" 
               className="text-secondary-dark hover:text-primary-violet transition-colors font-medium"
             >
               À propos
             </Link>
             <Link 
-              href="#how-it-works" 
+              href="/#how-it-works" 
               className="text-secondary-dark hover:text-primary-violet transition-colors font-medium"
             >
               Comment ça marche
             </Link>
             <Link 
-              href="#services" 
+              href="/#services" 
               className="text-secondary-dark hover:text-primary-violet transition-colors font-medium"
             >
               Services
             </Link>
             <Link 
-              href="#testimonials" 
+              href="/#testimonials" 
               className="text-secondary-dark hover:text-primary-violet transition-colors font-medium"
             >
               Témoignages
@@ -118,28 +118,28 @@ export default function Navbar() {
         }`}>
           <div className="space-y-4">
             <Link 
-              href="#about" 
+              href="/#about" 
               onClick={() => setIsOpen(false)}
               className="block text-secondary-dark hover:text-primary-violet transition-colors font-medium py-2"
             >
               À propos
             </Link>
             <Link 
-              href="#how-it-works" 
+              href="/#how-it-works" 
               onClick={() => setIsOpen(false)}
               className="block text-secondary-dark hover:text-primary-violet transition-colors font-medium py-2"
             >
               Comment ça marche
             </Link>
             <Link 
-              href="#services" 
+              href="/#services" 
               onClick={() => setIsOpen(false)}
               className="block text-secondary-dark hover:text-primary-violet transition-colors font-medium py-2"
             >
               Services
             </Link>
             <Link 
-              href="#testimonials" 
+              href="/#testimonials" 
               onClick={() => setIsOpen(false)}
               className="block text-secondary-dark hover:text-primary-violet transition-colors font-medium py-2"
             >

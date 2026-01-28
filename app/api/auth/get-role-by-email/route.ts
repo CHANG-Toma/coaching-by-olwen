@@ -28,7 +28,6 @@ export async function POST(request: Request) {
     }
 
     if (!user) {
-      console.log("❌ Utilisateur non trouvé pour:", email)
       return NextResponse.json(
         { error: "Utilisateur non trouvé" },
         { status: 404 }
