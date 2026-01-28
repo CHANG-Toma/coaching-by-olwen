@@ -38,10 +38,30 @@ export async function GET(
       )
     }
 
+    // Récupérer les rendez-vous de l'utilisateur
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        userId: params.id,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        startTime: "desc",
+      },
+    })
+
     // Pour l'instant, on retourne des tableaux vides pour devis/factures/paiements
     // Ces données seront connectées quand les modèles Prisma seront créés
     return NextResponse.json({
       user,
+      appointments,
       quotes: [], // À connecter avec le modèle Quote quand il existera
       invoices: [], // À connecter avec le modèle Invoice quand il existera
       payments: [], // À connecter avec le modèle Payment quand il existera

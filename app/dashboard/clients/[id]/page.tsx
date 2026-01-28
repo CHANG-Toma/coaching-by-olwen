@@ -16,14 +16,28 @@ type User = {
   updatedAt: Date
 }
 
+type Appointment = {
+  id: string
+  startTime: string
+  endTime: string
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED"
+  notes: string | null
+  user: {
+    id: string
+    name: string | null
+    email: string | null
+  }
+}
+
 type UserDetailsResponse = {
   user: User
+  appointments: Appointment[]
   quotes: any[]
   invoices: any[]
   payments: any[]
 }
 
-type Tab = "info" | "quotes" | "invoices" | "payments"
+type Tab = "info" | "appointments" | "quotes" | "invoices" | "payments"
 
 export default function ClientDetailPage() {
   const params = useParams()
@@ -97,6 +111,7 @@ export default function ClientDetailPage() {
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "info", label: "Informations" },
+    { id: "appointments", label: "Rendez-vous" },
     { id: "quotes", label: "Devis" },
     { id: "invoices", label: "Factures" },
     { id: "payments", label: "Paiements" },
@@ -135,7 +150,7 @@ export default function ClientDetailPage() {
     )
   }
 
-  const { user, quotes, invoices, payments } = data
+  const { user, appointments, quotes, invoices, payments } = data
 
   return (
     <div>
@@ -312,6 +327,97 @@ export default function ClientDetailPage() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {activeTab === "appointments" && (
+            <div>
+              <h2 className="text-xl font-heading font-bold text-secondary-dark mb-4">
+                Rendez-vous ({appointments.length})
+              </h2>
+              {appointments.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed border-secondary-light rounded-lg">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 text-secondary-light"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p className="text-secondary-dark/60 font-body mb-2">
+                    Aucun rendez-vous pour ce client
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {appointments.map((apt) => {
+                    const start = new Date(apt.startTime)
+                    const end = new Date(apt.endTime)
+                    return (
+                      <div
+                        key={apt.id}
+                        className="p-4 border-2 border-secondary-light rounded-lg hover:border-primary-violet transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <p className="font-heading font-bold text-secondary-dark">
+                                {start.toLocaleDateString("fr-FR", {
+                                  weekday: "long",
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                })}
+                              </p>
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-semibold font-body ${
+                                  apt.status === "CONFIRMED"
+                                    ? "bg-green-100 text-green-800"
+                                    : apt.status === "PENDING"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : apt.status === "CANCELLED"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {apt.status === "CONFIRMED"
+                                  ? "Confirmé"
+                                  : apt.status === "PENDING"
+                                  ? "En attente"
+                                  : apt.status === "CANCELLED"
+                                  ? "Annulé"
+                                  : "Terminé"}
+                              </span>
+                            </div>
+                            <p className="text-sm text-secondary-dark/60 font-body mb-2">
+                              {start.toLocaleTimeString("fr-FR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}{" "}
+                              -{" "}
+                              {end.toLocaleTimeString("fr-FR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                            {apt.notes && (
+                              <p className="text-sm text-secondary-dark/80 font-body bg-secondary-light/30 p-2 rounded-lg mt-2">
+                                {apt.notes}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
 
