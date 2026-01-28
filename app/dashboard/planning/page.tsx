@@ -558,7 +558,15 @@ export default function PlanningPage() {
 
       {/* Modal des rendez-vous du jour */}
       {showDateModal && selectedDate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowDateModal(false)
+              setSelectedDate(null)
+            }
+          }}
+        >
           <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-heading font-bold text-secondary-dark">
@@ -668,7 +676,15 @@ export default function PlanningPage() {
 
       {/* Modal de détails */}
       {showModal && selectedAppointment && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowModal(false)
+              setSelectedAppointment(null)
+            }
+          }}
+        >
           <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-heading font-bold text-secondary-dark">
@@ -768,7 +784,21 @@ export default function PlanningPage() {
 
       {/* Modal de création */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowCreateModal(false)
+              setFormData({
+                userId: "",
+                date: "",
+                time: "",
+                notes: "",
+                status: "PENDING",
+              })
+            }
+          }}
+        >
           <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-heading font-bold text-secondary-dark">
