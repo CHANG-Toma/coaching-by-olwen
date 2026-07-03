@@ -1,31 +1,30 @@
 "use client";
 
-import { FormEvent, useState } from "react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
+import CalendlyEmbed from "@/components/ui/CalendlyEmbed";
 
 const reassurances = [
   { label: "Consultation gratuite", detail: "30 min, sans engagement" },
   { label: "Présentiel", detail: "Ouest parisien" },
   { label: "Coaching en ligne", detail: "Partout en France" },
   { label: "Tarifs sur mesure", detail: "Devis adapté à vos besoins" },
-  { label: "Réponse rapide", detail: "Sous 24 heures ouvrées" },
+  { label: "Réservation instantanée", detail: "Créneau confirmé en ligne" },
+];
+
+const bookingSteps = [
+  "Choisissez un créneau",
+  "Confirmez vos coordonnées",
+  "Recevez la confirmation par email",
 ];
 
 export default function Contact() {
-  const [submitted, setSubmitted] = useState(false);
-
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setSubmitted(true);
-  }
-
   return (
-    <section id="contact" className="py-24">
+    <section id="contact" className="scroll-mt-28 py-24">
       <div className="section-container">
         <div className="overflow-hidden rounded-3xl border border-stone-200 bg-gradient-to-br from-stone-50 to-white dark:border-stone-800 dark:from-stone-900 dark:to-stone-950">
           <div className="grid lg:grid-cols-5">
-            <div className="border-b border-stone-200 p-8 dark:border-stone-800 lg:col-span-2 lg:border-b-0 lg:border-r lg:p-10">
+            <div className="border-b border-stone-200 p-6 dark:border-stone-800 sm:p-8 lg:sticky lg:top-28 lg:col-span-2 lg:self-start lg:border-b-0 lg:border-r lg:p-10">
               <RevealOnScroll>
                 <SectionHeader
                   eyebrow="Contact & réservation"
@@ -34,11 +33,11 @@ export default function Contact() {
                   align="left"
                 />
 
-                <div className="mt-8 space-y-4">
+                <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 lg:gap-4">
                   {reassurances.map((item) => (
                     <div
                       key={item.label}
-                      className="flex items-start gap-3 rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900"
+                      className="flex items-start gap-3 rounded-xl border border-stone-200 bg-white p-3.5 dark:border-stone-700 dark:bg-stone-900 sm:p-4"
                     >
                       <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-royal-100 dark:bg-royal-900/50">
                         <svg className="h-3 w-3 text-royal-700 dark:text-royal-300" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -49,7 +48,7 @@ export default function Contact() {
                         <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
                           {item.label}
                         </p>
-                        <p className="text-xs text-stone-500">{item.detail}</p>
+                        <p className="text-xs text-stone-500 dark:text-stone-400">{item.detail}</p>
                       </div>
                     </div>
                   ))}
@@ -57,75 +56,35 @@ export default function Contact() {
               </RevealOnScroll>
             </div>
 
-            <div className="p-8 lg:col-span-3 lg:p-10">
+            <div className="p-6 sm:p-8 lg:col-span-3 lg:p-10">
               <RevealOnScroll delay={100}>
-                {submitted ? (
-                  <div className="flex h-full flex-col items-center justify-center py-12 text-center">
-                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-royal-100 dark:bg-royal-900/40">
-                      <svg className="h-8 w-8 text-royal-700 dark:text-royal-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </span>
-                    <h3 className="mt-5 text-xl font-bold text-stone-900 dark:text-stone-100">
-                      Demande envoyée !
-                    </h3>
-                    <p className="mt-2 max-w-sm text-sm text-stone-500 dark:text-stone-400">
-                      Je vous recontacterai très prochainement. (Formulaire visuel — pas d&apos;envoi réel pour le moment.)
-                    </p>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <p className="text-sm text-stone-500 dark:text-stone-400">
-                      Remplissez le formulaire ci-dessous — je vous recontacte pour planifier votre consultation gratuite de 30 minutes.
-                    </p>
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <div>
-                        <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-stone-300">
-                          Nom complet
-                        </label>
-                        <input id="name" name="name" type="text" required placeholder="Votre nom" className="input-field" autoComplete="name" />
-                      </div>
-                      <div>
-                        <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-stone-300">
-                          Email
-                        </label>
-                        <input id="email" name="email" type="email" required placeholder="votre@email.com" className="input-field" autoComplete="email" />
-                      </div>
-                    </div>
-                    <div>
-                      <label htmlFor="goal" className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-stone-300">
-                        Votre objectif principal
-                      </label>
-                      <select id="goal" name="goal" required className="input-field">
-                        <option value="">Sélectionnez...</option>
-                        <option value="forme">Retrouver la forme</option>
-                        <option value="technique">Améliorer ma technique</option>
-                        <option value="performance">Performance sportive</option>
-                        <option value="distance">Programme à distance</option>
-                        <option value="evenement">Événement ou séminaire</option>
-                        <option value="autre">Autre</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="message" className="mb-1.5 block text-sm font-medium text-stone-700 dark:text-stone-300">
-                        Message (optionnel)
-                      </label>
-                      <textarea
-                        id="message"
-                        name="message"
-                        rows={3}
-                        placeholder="Décrivez votre situation, vos contraintes ou vos questions..."
-                        className="input-field resize-none"
-                      />
-                    </div>
-                    <button type="submit" className="btn-primary btn-primary-lg w-full">
-                      Réserver ma consultation gratuite
-                    </button>
-                    <p className="text-center text-xs text-stone-400">
-                      Sans engagement · Annulation libre · Réponse sous 24 h
-                    </p>
-                  </form>
-                )}
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 sm:text-xl">
+                    Réservez votre consultation gratuite
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-500 dark:text-stone-400">
+                    30 minutes pour faire connaissance, poser vos questions et voir si nous sommes faits pour travailler ensemble.
+                  </p>
+
+                  <ol
+                    className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3"
+                    aria-label="Étapes de réservation"
+                  >
+                    {bookingSteps.map((step, index) => (
+                      <li
+                        key={step}
+                        className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300"
+                      >
+                        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-royal-600 to-bordeaux-600 text-[10px] font-bold text-white">
+                          {index + 1}
+                        </span>
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+
+                <CalendlyEmbed />
               </RevealOnScroll>
             </div>
           </div>
