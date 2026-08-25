@@ -9,24 +9,33 @@ const services = [
   {
     title: "Coaching 100 % individualisé",
     tagline: "L'excellence technique avant tout",
-    description:
-      "Chaque corps est unique. Je conçois des séances sur mesure en tenant compte de votre histoire, de votre mode de vie et de vos antécédents. Ici, la performance ne se construit jamais au détriment de la santé : nous privilégions la qualité du mouvement et la précision technique. Progresser en toute sécurité, c'est apprendre à écouter son corps et à le préserver pour durer.",
+    points: [
+      "Séances sur mesure selon votre corps et vos objectifs",
+      "Qualité du geste et sécurité avant tout",
+      "Progression durable, sans brusquer",
+    ],
     location: "Présentiel — Ouest parisien",
     popular: true,
   },
   {
     title: "Programmes à distance",
     tagline: "L'autonomie, le suivi en plus",
-    description:
-      "Vous souhaitez vous entraîner où vous voulez, tout en étant certain(e) de faire le bon geste ? Vous recevez une programmation personnalisée et un accompagnement continu. Je reste disponible à distance pour corriger vos postures, analyser vos vidéos et vous conseiller au quotidien. S'entraîner seul(e) ne signifie pas s'entraîner sans guide.",
+    points: [
+      "Programmation personnalisée où que vous soyez",
+      "Corrections vidéo et conseils réguliers",
+      "Autonomie guidée, jamais seul(e)",
+    ],
     location: "En ligne — partout en France",
     popular: false,
   },
   {
     title: "Événements & séminaires",
     tagline: "Le sport comme vecteur de partage",
-    description:
-      "Vous souhaitez fédérer vos proches ou vos collaborateurs ? J'organise et j'anime des événements sportifs sur mesure : bootcamps, journées thématiques ou week-ends de reconnexion. Des moments intenses, dynamiques et accessibles, pensés pour bouger ensemble — dans le respect du rythme de chacun.",
+    points: [
+      "Bootcamps, journées et week-ends sur mesure",
+      "Pour proches, équipes ou collaborateurs",
+      "Dynamique collective, rythme accessible",
+    ],
     location: null,
     popular: false,
   },
@@ -40,9 +49,9 @@ export default function Services() {
       <div className="section-container">
         <RevealOnScroll>
           <SectionHeader
-            eyebrow="Mes offres de coaching sportif"
-            title="La santé et la longévité au cœur de la performance"
-            subtitle="Excellence technique, qualité du geste et accompagnement durable — en séance individuelle dans l'Ouest parisien ou via un programme d'entraînement à distance, partout en France."
+            eyebrow="Mes offres"
+            title="Trois formats, une même exigence"
+            subtitle="Présentiel en Ouest parisien, à distance partout en France, ou événementiel sur mesure."
             titleId="services-heading"
           />
         </RevealOnScroll>
@@ -78,12 +87,31 @@ export default function Services() {
                   {service.title}
                 </h3>
 
-                <p className="mt-4 flex-1 text-sm leading-relaxed text-stone-600 dark:text-stone-400">
-                  {service.description}
-                </p>
+                <ul className="mt-5 flex-1 space-y-2.5">
+                  {service.points.map((point) => (
+                    <li
+                      key={point}
+                      className="flex items-start gap-2.5 text-sm leading-snug text-stone-600 dark:text-stone-400"
+                    >
+                      <svg
+                        className="mt-0.5 h-4 w-4 shrink-0 text-bordeaux-600 dark:text-bordeaux-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {point}
+                    </li>
+                  ))}
+                </ul>
 
                 {service.location && (
-                  <p className="mt-4 inline-flex items-center gap-2 text-xs font-medium text-royal-800 dark:text-royal-300">
+                  <p className="mt-5 inline-flex items-center gap-2 text-xs font-medium text-royal-800 dark:text-royal-300">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -104,16 +132,9 @@ export default function Services() {
         </div>
 
         <RevealOnScroll delay={250}>
-          <div className="mt-10 rounded-2xl border border-stone-200 bg-stone-50 px-6 py-5 text-center dark:border-stone-800 dark:bg-stone-900/50">
-            <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
-              Tarifs sur mesure
-            </h3>
-            <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-              Chaque accompagnement est unique. Je vous propose un devis adapté à
-              vos objectifs, à la fréquence souhaitée et au format choisi —
-              présentiel, à distance ou événementiel.
-            </p>
-          </div>
+          <p className="mt-10 text-center text-sm text-stone-500 dark:text-stone-400">
+            Tarifs sur mesure — devis adapté à vos objectifs et au format choisi.
+          </p>
         </RevealOnScroll>
       </div>
     </section>
