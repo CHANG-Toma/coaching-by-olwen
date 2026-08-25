@@ -1,0 +1,41 @@
+---
+description: Nielsen heuristics and core UX usability practices
+globs: "**/*.{tsx,jsx,css}"
+alwaysApply: false
+---
+
+# UX Heuristics
+
+Apply Nielsen’s heuristics and common UX patterns on every UI change.
+
+## Visibility & Feedback
+- Always show system status (loading, success, error, disabled).
+- Prefer inline feedback near the action; avoid silent failures.
+- Optimistic UI only when rollback is clear and safe.
+
+## Match the Real World
+- Use the client’s language (FR), familiar labels, and expected flows.
+- Don’t invent jargon; mirror how users book/contact a coach.
+
+## User Control
+- Support cancel, close, undo, and easy exit from modals/forms.
+- Confirm destructive actions; don’t trap users in dead ends.
+
+## Consistency
+- Same patterns for same actions (buttons, links, forms, nav).
+- Align spacing, type scale, and interaction states across pages.
+
+## Error Prevention & Recovery
+- Validate early; disable submit until required fields are valid when helpful.
+- Errors: what went wrong + how to fix it. Never blame the user.
+
+## Recognition Over Recall
+- Visible options, labels, and context — don’t rely on memory.
+- Keep critical info on screen during multi-step flows.
+
+## Flexibility & Efficiency
+- Obvious path for first-time users; shortcuts for returning ones (defaults, autofill).
+
+## Aesthetic Restraint
+- One job per section; reduce competing CTAs and clutter.
+- Hierarchy: brand/page purpose → primary action → secondary content.

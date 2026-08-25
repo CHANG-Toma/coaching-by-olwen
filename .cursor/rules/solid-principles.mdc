@@ -1,0 +1,42 @@
+---
+description: SOLID principles and clean architecture for maintainable code
+alwaysApply: true
+---
+
+# SOLID Principles
+
+Apply SOLID on every change. Prefer small, focused modules over god files.
+
+## SRP — Single Responsibility
+One module/class/function = one reason to change.
+
+```typescript
+// ❌ BAD — UI + fetch + validation in one component
+// ✅ GOOD — validateInput(), fetchCoach(), CoachCard
+```
+
+## OCP — Open/Closed
+Extend via composition/props/hooks; avoid editing core logic for every variant.
+
+## LSP — Liskov Substitution
+Subtypes must honor the parent contract. Don’t weaken preconditions or throw unexpected errors.
+
+## ISP — Interface Segregation
+Prefer narrow types/props. Don’t force callers to depend on unused fields.
+
+```typescript
+// ❌ BAD
+type UserService = { create; update; delete; sendEmail; exportCsv };
+
+// ✅ GOOD
+type UserWriter = { create; update; delete };
+type UserNotifier = { sendEmail };
+```
+
+## DIP — Dependency Inversion
+Depend on abstractions (interfaces, injected deps), not concrete DB/HTTP clients in business logic.
+
+## DRY & Structure
+- Extract shared logic once; don’t copy-paste variants.
+- Keep side effects at boundaries (API routes, Server Actions).
+- Prefer pure functions for domain rules.

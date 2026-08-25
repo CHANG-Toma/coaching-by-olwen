@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-stone-800 antialiased transition-colors duration-300 dark:bg-stone-950 dark:text-stone-200;
+  }
+
+  ::selection {
+    @apply bg-royal-100 text-royal-900 dark:bg-royal-900 dark:text-royal-100;
+  }
+}
+
+@layer components {
+  .section-container {
+    @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.25em] text-royal-700 dark:text-royal-300;
+  }
+
+  .section-title {
+    @apply text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-[2.75rem] lg:leading-tight dark:text-stone-50;
+  }
+
+  .section-subtitle {
+    @apply mt-4 max-w-2xl text-base leading-relaxed text-stone-500 sm:text-lg dark:text-stone-400;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-bordeaux-700 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-bordeaux-600 hover:shadow-md active:scale-[0.98];
+  }
+
+  .btn-primary-lg {
+    @apply px-8 py-3.5 text-base;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-700 transition-all duration-200 hover:border-royal-300 hover:text-royal-800 active:scale-[0.98] dark:border-stone-600 dark:bg-stone-900 dark:text-stone-200 dark:hover:border-royal-500 dark:hover:text-royal-300;
+  }
+
+  .card {
+    @apply rounded-2xl border border-stone-200 bg-white transition-all duration-300 dark:border-stone-800 dark:bg-stone-900;
+  }
+
+  .card-hover {
+    @apply card hover:-translate-y-1 hover:border-royal-200 hover:shadow-lg hover:shadow-royal-900/5 dark:hover:border-royal-700 dark:hover:shadow-black/20;
+  }
+
+  .accent-bar {
+    @apply h-1 w-12 rounded-full bg-gradient-to-r from-royal-600 to-bordeaux-600;
+  }
+
+  .section-alt {
+    @apply bg-stone-50 dark:bg-stone-900/50;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:border-royal-400 focus:ring-2 focus:ring-royal-100 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-royal-500 dark:focus:ring-royal-900;
+  }
+
+  .reveal {
+    @apply opacity-0;
+  }
+
+  .reveal.visible {
+    @apply animate-fade-up;
+  }
+}
