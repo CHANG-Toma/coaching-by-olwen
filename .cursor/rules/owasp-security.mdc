@@ -1,0 +1,39 @@
+---
+description: OWASP Top 10 security practices for Next.js apps
+alwaysApply: true
+---
+
+# OWASP Security
+
+Enforce these on every API route, Server Action, and form handler.
+
+## Input Validation
+Validate and sanitize at boundaries with Zod (or equivalent). Never trust client input.
+
+```typescript
+// ✅ GOOD
+const schema = z.object({ email: z.string().email(), name: z.string().min(1).max(100) });
+const data = schema.parse(await request.json());
+```
+
+## Injection
+Use ORM / parameterized queries only. Never concatenate user input into SQL, shell, or HTML.
+
+## AuthZ / AuthN (BOLA/IDOR)
+Check authentication **and** authorization server-side on every sensitive resource. Never rely on hidden UI alone.
+
+```typescript
+// ❌ BAD — fetch by id from body without ownership check
+// ✅ GOOD — session.userId must own resource.id before mutate/read
+```
+
+## Secrets & Data
+- Never hardcode secrets; use env vars only.
+- Never log passwords, tokens, PII, or full `.env` values.
+- Don’t commit `.env` or credential files.
+
+## Error Handling
+Return generic client errors. Log details server-side only. Never expose stack traces, SQL, or infra paths to the client.
+
+## XSS / CSRF
+Escape/encode output; prefer framework defaults. Protect state-changing routes (SameSite cookies, CSRF tokens where needed).

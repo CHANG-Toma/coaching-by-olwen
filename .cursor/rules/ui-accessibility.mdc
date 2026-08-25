@@ -1,0 +1,33 @@
+---
+description: UI accessibility, interaction, and visual design best practices
+globs: "**/*.{tsx,jsx,css}"
+alwaysApply: false
+---
+
+# UI & Accessibility
+
+## Accessibility (WCAG-oriented)
+- Semantic HTML first (`button`, `a`, `label`, headings in order).
+- Visible focus rings; never remove outline without a clear replacement.
+- Color is not the only signal — pair with text/icon.
+- Contrast: aim for WCAG AA (text vs background).
+- Images: meaningful `alt`; decorative images `alt=""`.
+- Forms: every input has a label; errors linked via `aria-describedby`.
+- Keyboard: all interactive elements reachable and operable without a mouse.
+
+## Interaction
+- Touch targets ≥ 44×44px on mobile.
+- Hover is enhancement only — don’t hide essential actions on touch devices.
+- Loading: skeletons/spinners for waits > ~300ms; prevent double-submit.
+- Empty states: explain + one clear next action.
+
+## Layout & Visual
+- Clear visual hierarchy (size, weight, space — not just color).
+- Consistent spacing scale; align to a grid; avoid one-off magic margins.
+- Prefer real content/imagery over generic stock or abstract filler.
+- Motion: purposeful (entrance, hierarchy, feedback), short, and `prefers-reduced-motion` respected.
+
+## Content UI
+- Primary CTA: one per viewport/section when possible.
+- Microcopy: short, action-oriented (“Réserver un appel”, not “Soumettre”).
+- Don’t use cards unless they group an interaction; avoid decorative boxes.

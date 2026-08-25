@@ -1,0 +1,38 @@
+---
+description: Typing, performance, and maintainability standards
+alwaysApply: true
+---
+
+# Code Quality
+
+## Typing
+- Strict TypeScript; avoid `any` and untyped escape hatches.
+- Prefer explicit return types on exported functions and API handlers.
+- Model boundaries with Zod → inferred types.
+
+## Errors
+- Fail loudly with typed/domain errors; don’t swallow exceptions.
+- Clean `try/catch` with meaningful messages and causes.
+
+```typescript
+// ❌ BAD
+try { await save(); } catch {}
+
+// ✅ GOOD
+try {
+  await save();
+} catch (e) {
+  throw new Error("Failed to save booking", { cause: e });
+}
+```
+
+## Performance
+- Prevent N+1: batch, `include`/`select`, or DataLoader-style fetches.
+- Prefer O(1) lookups (`Map`/`Set`) over nested loops when scaling.
+- Clean up listeners, intervals, and AbortControllers.
+- Lazy-load heavy client components; keep Server Components by default in Next.js.
+
+## Modules
+- Small, testable units with clear inputs/outputs.
+- Colocate feature code; avoid cross-feature deep imports.
+- No dead code or commented-out blocks in commits.
